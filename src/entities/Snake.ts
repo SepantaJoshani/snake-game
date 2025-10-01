@@ -15,9 +15,10 @@ export class Snake {
   public container: Container;
   public segments: Position[];
   public direction: Direction;
-  private segmentGraphics: Graphics[];
   private shouldGrow: boolean;
   private previousSegments: Position[];
+  private graphicsPool: Graphics[];
+  private readonly maxPoolSize: number = 100; // Max snake length expected
 
   constructor(startX: number = 10, startY: number = 10) {
     this.container = new Container();
@@ -27,13 +28,35 @@ export class Snake {
       { x: startX - 2, y: startY },
     ];
     this.direction = { ...Directions.RIGHT };
-    this.segmentGraphics = [];
     this.shouldGrow = false;
 
     // Store previous positions for interpolation
     this.previousSegments = this.segments.map((seg) => ({ ...seg }));
 
+    // Initialize graphics pool
+    this.graphicsPool = [];
+    this.initializeGraphicsPool();
+
     this.render();
+  }
+
+  private initializeGraphicsPool(): void {
+    // Pre-create graphics objects for reuse
+    for (let i = 0; i < this.maxPoolSize; i++) {
+      const graphic = new Graphics();
+      this.graphicsPool.push(graphic);
+    }
+  }
+
+  private getGraphicFromPool(index: number): Graphics {
+    // Reuse existing graphic or create new one if pool is exhausted
+    if (index < this.graphicsPool.length) {
+      return this.graphicsPool[index];
+    }
+    // Fallback: create new graphic if snake grows beyond expected size
+    const graphic = new Graphics();
+    this.graphicsPool.push(graphic);
+    return graphic;
   }
 
   public move(): void {
@@ -92,16 +115,18 @@ export class Snake {
   }
 
   private renderInterpolated(progress: number): void {
-    // Clear existing graphics
-    this.segmentGraphics.forEach((graphic) => graphic.destroy());
-    this.segmentGraphics = [];
-    this.container.removeChildren();
+    // Remove unused graphics from container
+    while (this.container.children.length > this.segments.length) {
+      const child = this.container.children[this.container.children.length - 1];
+      this.container.removeChild(child);
+    }
 
     const totalSegments = this.segments.length;
 
     // Render each segment with interpolated positions
     this.segments.forEach((segment, index) => {
-      const graphic = new Graphics();
+      const graphic = this.getGraphicFromPool(index);
+      graphic.clear(); // Clear previous drawing
       const isHead = index === 0;
 
       // Calculate gradient color based on position (darker towards tail)
@@ -145,22 +170,26 @@ export class Snake {
         this.drawEyes(graphic, x, y, size);
       }
 
-      this.segmentGraphics.push(graphic);
-      this.container.addChild(graphic);
+      // Add to container if not already present
+      if (!this.container.children.includes(graphic)) {
+        this.container.addChild(graphic);
+      }
     });
   }
 
   private render(): void {
-    // Clear existing graphics
-    this.segmentGraphics.forEach((graphic) => graphic.destroy());
-    this.segmentGraphics = [];
-    this.container.removeChildren();
+    // Remove unused graphics from container
+    while (this.container.children.length > this.segments.length) {
+      const child = this.container.children[this.container.children.length - 1];
+      this.container.removeChild(child);
+    }
 
     const totalSegments = this.segments.length;
 
     // Render each segment
     this.segments.forEach((segment, index) => {
-      const graphic = new Graphics();
+      const graphic = this.getGraphicFromPool(index);
+      graphic.clear(); // Clear previous drawing
       const isHead = index === 0;
 
       // Calculate gradient color based on position (darker towards tail)
@@ -199,8 +228,10 @@ export class Snake {
         this.drawEyes(graphic, x, y, size);
       }
 
-      this.segmentGraphics.push(graphic);
-      this.container.addChild(graphic);
+      // Add to container if not already present
+      if (!this.container.children.includes(graphic)) {
+        this.container.addChild(graphic);
+      }
     });
   }
 
