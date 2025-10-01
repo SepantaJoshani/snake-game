@@ -46,6 +46,22 @@ canvas {
   display: block;
 }
 
+/* Force pixi-stats to top-left corner */
+.pixi-stats,
+#stats,
+#pixi-stats {
+  position: fixed !important;
+  top: 10px !important;
+  left: 10px !important;
+  right: auto !important;
+  bottom: auto !important;
+  transform: scale(0.7) !important;
+  transform-origin: top left !important;
+  opacity: 0.85 !important;
+  pointer-events: none !important;
+  z-index: 9999 !important;
+}
+
 /* Mobile-specific styles */
 @media (max-width: 768px) {
   #app {

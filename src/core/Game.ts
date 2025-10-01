@@ -123,47 +123,62 @@ export class Game {
   }
 
   private setupPerformanceMonitoring(): void {
-    // Add stats to DOM - pixi-stats uses view property instead of dom
+    const statsElement = this.stats.domElement;
+
+    // Remove from DOM first (Stats constructor auto-appends it)
+    if (statsElement.parentNode) {
+      statsElement.parentNode.removeChild(statsElement);
+    }
+
+    // Always set up positioning (even if hidden initially)
+    this.positionStatsElement(statsElement);
+
+    // Only add to DOM if showStats is true
     if (this.showStats) {
-      const statsElement =
-        (this.stats as any).view || (this.stats as any).domElement;
-      if (statsElement) {
-        document.body.appendChild(statsElement);
-        this.positionStatsElement(statsElement);
-      }
+      document.body.appendChild(statsElement);
     }
   }
 
   private positionStatsElement(element: HTMLElement): void {
+    // Keep original 'stats' ID but add class for CSS targeting
+    element.id = "stats";
+    element.classList.add("pixi-stats");
+
     // Position stats in top-left corner with fixed positioning
-    element.style.position = "fixed";
-    element.style.top = "10px";
-    element.style.left = "10px";
-    element.style.zIndex = "9999";
-    element.style.opacity = "0.85";
-
-    // Make it smaller and more compact
-    element.style.transform = "scale(0.7)";
-    element.style.transformOrigin = "top left";
-
-    // Ensure it doesn't interfere with touch
-    element.style.pointerEvents = "none";
+    element.style.cssText = `
+      position: fixed !important;
+      top: 10px !important;
+      left: 10px !important;
+      right: auto !important;
+      bottom: auto !important;
+      z-index: 9999 !important;
+      opacity: 0.85 !important;
+      transform: scale(0.7) !important;
+      transform-origin: top left !important;
+      pointer-events: none !important;
+    `;
   }
 
   public toggleStats(): void {
     this.showStats = !this.showStats;
+    console.log("📊 Stats toggled:", this.showStats ? "ON" : "OFF");
 
-    const statsElement =
-      (this.stats as any).view || (this.stats as any).domElement;
-    if (!statsElement) return;
+    const statsElement = this.stats.domElement;
+    console.log("📊 Stats element:", statsElement);
 
     if (this.showStats) {
-      document.body.appendChild(statsElement);
       this.positionStatsElement(statsElement);
+      document.body.appendChild(statsElement);
+      console.log(
+        "📊 Stats added to DOM at position:",
+        window.getComputedStyle(statsElement).left,
+        window.getComputedStyle(statsElement).top
+      );
     } else {
       if (statsElement.parentNode) {
         statsElement.parentNode.removeChild(statsElement);
       }
+      console.log("📊 Stats removed from DOM");
     }
   }
 
