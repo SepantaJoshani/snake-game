@@ -195,6 +195,9 @@ export class Game {
       this.scoreSystem.getHighScore()
     );
 
+    // Update food animation (runs in all states)
+    this.food.update(deltaMS);
+
     // Only update game logic when playing
     if (currentState !== GameStates.PLAYING) {
       return;
