@@ -1,6 +1,12 @@
 import { Container, Text, Graphics } from "pixi.js";
 import { COLORS, CANVAS_WIDTH, CANVAS_HEIGHT } from "../utils/Constants";
 
+function isMobileDevice(): boolean {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+    navigator.userAgent
+  );
+}
+
 export class MenuScreen {
   public container: Container;
   private background: Graphics;
@@ -31,12 +37,17 @@ export class MenuScreen {
     this.titleText.x = CANVAS_WIDTH / 2;
     this.titleText.y = CANVAS_HEIGHT / 2 - 80;
 
-    // Instructions
+    // Instructions - different for mobile and desktop
+    const isMobile = isMobileDevice();
+    const instructionMessage = isMobile
+      ? "Tap to Start\n\nSwipe to move the snake\nTap screen to Pause"
+      : "Press SPACE to Start\n\nUse Arrow Keys or WASD to move\nP to Pause • F for Performance Stats • M to Mute";
+
     this.instructionText = new Text({
-      text: "Press SPACE to Start\n\nUse Arrow Keys or WASD to move\nP to Pause • F for Performance Stats • M to Mute",
+      text: instructionMessage,
       style: {
         fontFamily: "Arial, sans-serif",
-        fontSize: 24,
+        fontSize: isMobile ? 20 : 24,
         fill: COLORS.text,
         align: "center",
       },

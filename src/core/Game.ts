@@ -11,6 +11,7 @@ import { HUD } from "../ui/HUD";
 import { MenuScreen } from "../ui/MenuScreen";
 import { PauseScreen } from "../ui/PauseScreen";
 import { GameOverScreen } from "../ui/GameOverScreen";
+import { TouchControls } from "../ui/TouchControls";
 import { GameState } from "./GameState";
 import { ParticlePool } from "../utils/ParticlePool";
 import {
@@ -44,6 +45,7 @@ export class Game {
   private menuScreen: MenuScreen;
   private pauseScreen: PauseScreen;
   private gameOverScreen: GameOverScreen;
+  private touchControls: TouchControls;
 
   // Performance monitoring
   private stats: Stats;
@@ -86,6 +88,7 @@ export class Game {
     this.menuScreen = new MenuScreen();
     this.pauseScreen = new PauseScreen();
     this.gameOverScreen = new GameOverScreen();
+    this.touchControls = new TouchControls();
 
     // Initialize performance monitoring
     this.showStats = import.meta.env.DEV; // Show in dev mode by default
@@ -112,6 +115,7 @@ export class Game {
     this.setupScreenEffects();
     this.setupGameStateListeners();
     this.setupInputHandlers();
+    this.setupTouchControls();
     this.startGameLoop();
 
     // Update menu with current high score
@@ -131,11 +135,19 @@ export class Game {
   }
 
   private positionStatsElement(element: HTMLElement): void {
-    // Position stats in top-left corner
-    element.style.position = "absolute";
-    element.style.top = "60px"; // Below score text
-    element.style.left = "20px";
+    // Position stats in top-left corner with fixed positioning
+    element.style.position = "fixed";
+    element.style.top = "10px";
+    element.style.left = "10px";
     element.style.zIndex = "9999";
+    element.style.opacity = "0.85";
+    
+    // Make it smaller and more compact
+    element.style.transform = "scale(0.7)";
+    element.style.transformOrigin = "top left";
+    
+    // Ensure it doesn't interfere with touch
+    element.style.pointerEvents = "none";
   }
 
   public toggleStats(): void {
@@ -171,12 +183,14 @@ export class Game {
     this.app.stage.addChild(this.menuScreen.container);
     this.app.stage.addChild(this.pauseScreen.container);
     this.app.stage.addChild(this.gameOverScreen.container);
+    this.app.stage.addChild(this.touchControls.container);
 
     // Mark UI containers as render groups for better batching
     this.hud.container.isRenderGroup = true;
     this.menuScreen.container.isRenderGroup = true;
     this.pauseScreen.container.isRenderGroup = true;
     this.gameOverScreen.container.isRenderGroup = true;
+    this.touchControls.container.isRenderGroup = true;
   }
 
   private setupScreenEffects(): void {
@@ -196,6 +210,7 @@ export class Game {
       this.menuScreen.show();
       this.pauseScreen.hide();
       this.gameOverScreen.hide();
+      this.touchControls.hide();
       this.fadeIn(500);
 
       // Stop background music on menu
@@ -206,6 +221,7 @@ export class Game {
       this.menuScreen.hide();
       this.pauseScreen.hide();
       this.gameOverScreen.hide();
+      this.touchControls.show();
       this.fadeIn(300);
 
       // Start background music when playing
@@ -216,6 +232,7 @@ export class Game {
 
     this.gameState.onStateChange(GameStates.PAUSED, () => {
       this.pauseScreen.show();
+      this.touchControls.show();
       // Music continues playing during pause
     });
 
@@ -226,6 +243,7 @@ export class Game {
         this.scoreSystem.getHighScore()
       );
       this.menuScreen.updateHighScore(this.scoreSystem.getHighScore());
+      this.touchControls.hide();
 
       // Stop background music on game over
       this.audioSystem.stopBackgroundMusic();
@@ -233,6 +251,7 @@ export class Game {
   }
 
   private setupInputHandlers(): void {
+    // Keyboard handlers
     window.addEventListener("keydown", (event) => {
       if (event.key === " " || event.key === "Spacebar") {
         event.preventDefault();
@@ -246,6 +265,70 @@ export class Game {
       } else if (event.key === "m" || event.key === "M") {
         event.preventDefault();
         this.toggleMute();
+      }
+    });
+
+    // Touch handlers for mobile
+    this.setupTouchHandlers();
+  }
+
+  private setupTouchHandlers(): void {
+    let touchStartTime = 0;
+    let touchStartTarget: EventTarget | null = null;
+    const TAP_TIME_THRESHOLD = 200; // Maximum time for a tap (ms)
+
+    window.addEventListener("touchstart", (event) => {
+      touchStartTime = Date.now();
+      touchStartTarget = event.target;
+    });
+
+    window.addEventListener("touchend", (event) => {
+      const touchDuration = Date.now() - touchStartTime;
+
+      // Check if touch started on canvas (not on touch controls or UI)
+      const touchedCanvas = touchStartTarget instanceof HTMLCanvasElement;
+
+      // Only trigger on quick taps (not swipes) and only on canvas
+      if (touchDuration < TAP_TIME_THRESHOLD && touchedCanvas) {
+        const currentState = this.gameState.getCurrentState();
+
+        // Handle tap based on current state
+        if (
+          currentState === GameStates.MENU ||
+          currentState === GameStates.GAME_OVER
+        ) {
+          event.preventDefault();
+          this.handleSpacePress();
+        } else if (currentState === GameStates.PLAYING) {
+          // Single tap on canvas to pause during gameplay
+          event.preventDefault();
+          this.handlePausePress();
+        } else if (currentState === GameStates.PAUSED) {
+          event.preventDefault();
+          this.gameState.transition(GameStates.PLAYING);
+        }
+      }
+
+      touchStartTarget = null;
+    });
+  }
+
+  private setupTouchControls(): void {
+    // Connect touch control buttons to input system
+    this.touchControls.onDirectionInput((direction) => {
+      // Add direction to input buffer (same as keyboard/swipe input)
+      const currentState = this.gameState.getCurrentState();
+      if (currentState === GameStates.PLAYING) {
+        // Directly set the snake direction for immediate response
+        const currentDirection = this.snake.direction;
+
+        // Validate against 180-degree turns
+        if (
+          direction.x !== -currentDirection.x ||
+          direction.y !== -currentDirection.y
+        ) {
+          this.snake.setDirection(direction);
+        }
       }
     });
   }

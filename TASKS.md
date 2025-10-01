@@ -702,24 +702,24 @@ src/systems/AudioSystem.js
 
 ### Task 15.1: Add Touch Controls
 
-- [ ] Detect swipe gestures
-- [ ] Map swipes to directions
-- [ ] Test on mobile device
-- [ ] Add visual feedback
-- [ ] Check responsive design
+- [x] Detect swipe gestures
+- [x] Map swipes to directions
+- [x] Test on mobile device
+- [x] Add visual feedback
+- [x] Check responsive design
 
-**Completion Criteria**: Game playable on mobile
+**Completion Criteria**: Game playable on mobile ✅
 
 ---
 
 ### Task 15.2: Make Responsive
 
-- [ ] Scale canvas to fit screen
-- [ ] Maintain aspect ratio
-- [ ] Test on different screen sizes
-- [ ] Add orientation detection
+- [x] Scale canvas to fit screen
+- [x] Maintain aspect ratio
+- [x] Test on different screen sizes
+- [x] Add orientation detection
 
-**Completion Criteria**: Game works on different screen sizes
+**Completion Criteria**: Game works on different screen sizes ✅
 
 ---
 
