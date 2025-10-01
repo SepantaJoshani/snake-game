@@ -11,7 +11,7 @@ import { HUD } from "../ui/HUD";
 import { MenuScreen } from "../ui/MenuScreen";
 import { PauseScreen } from "../ui/PauseScreen";
 import { GameOverScreen } from "../ui/GameOverScreen";
-import { TouchControls } from "../ui/TouchControls";
+import { TouchControlsDOM } from "../ui/TouchControlsDOM";
 import { GameState } from "./GameState";
 import { ParticlePool } from "../utils/ParticlePool";
 import {
@@ -45,7 +45,7 @@ export class Game {
   private menuScreen: MenuScreen;
   private pauseScreen: PauseScreen;
   private gameOverScreen: GameOverScreen;
-  private touchControls: TouchControls;
+  private touchControls: TouchControlsDOM;
 
   // Performance monitoring
   private stats: Stats;
@@ -88,7 +88,7 @@ export class Game {
     this.menuScreen = new MenuScreen();
     this.pauseScreen = new PauseScreen();
     this.gameOverScreen = new GameOverScreen();
-    this.touchControls = new TouchControls();
+    this.touchControls = new TouchControlsDOM();
 
     // Initialize performance monitoring
     this.showStats = import.meta.env.DEV; // Show in dev mode by default
@@ -141,11 +141,11 @@ export class Game {
     element.style.left = "10px";
     element.style.zIndex = "9999";
     element.style.opacity = "0.85";
-    
+
     // Make it smaller and more compact
     element.style.transform = "scale(0.7)";
     element.style.transformOrigin = "top left";
-    
+
     // Ensure it doesn't interfere with touch
     element.style.pointerEvents = "none";
   }
@@ -183,14 +183,12 @@ export class Game {
     this.app.stage.addChild(this.menuScreen.container);
     this.app.stage.addChild(this.pauseScreen.container);
     this.app.stage.addChild(this.gameOverScreen.container);
-    this.app.stage.addChild(this.touchControls.container);
 
     // Mark UI containers as render groups for better batching
     this.hud.container.isRenderGroup = true;
     this.menuScreen.container.isRenderGroup = true;
     this.pauseScreen.container.isRenderGroup = true;
     this.gameOverScreen.container.isRenderGroup = true;
-    this.touchControls.container.isRenderGroup = true;
   }
 
   private setupScreenEffects(): void {
@@ -285,27 +283,20 @@ export class Game {
     window.addEventListener("touchend", (event) => {
       const touchDuration = Date.now() - touchStartTime;
 
-      // Check if touch started on canvas (not on touch controls or UI)
+      // Check if touch started on canvas
       const touchedCanvas = touchStartTarget instanceof HTMLCanvasElement;
 
-      // Only trigger on quick taps (not swipes) and only on canvas
+      // Only trigger on quick taps on canvas for menu/game over screens
       if (touchDuration < TAP_TIME_THRESHOLD && touchedCanvas) {
         const currentState = this.gameState.getCurrentState();
 
-        // Handle tap based on current state
+        // Only handle tap for menu and game over (no pause during gameplay)
         if (
           currentState === GameStates.MENU ||
           currentState === GameStates.GAME_OVER
         ) {
           event.preventDefault();
           this.handleSpacePress();
-        } else if (currentState === GameStates.PLAYING) {
-          // Single tap on canvas to pause during gameplay
-          event.preventDefault();
-          this.handlePausePress();
-        } else if (currentState === GameStates.PAUSED) {
-          event.preventDefault();
-          this.gameState.transition(GameStates.PLAYING);
         }
       }
 
@@ -316,7 +307,6 @@ export class Game {
   private setupTouchControls(): void {
     // Connect touch control buttons to input system
     this.touchControls.onDirectionInput((direction) => {
-      // Add direction to input buffer (same as keyboard/swipe input)
       const currentState = this.gameState.getCurrentState();
       if (currentState === GameStates.PLAYING) {
         // Directly set the snake direction for immediate response
@@ -330,6 +320,11 @@ export class Game {
           this.snake.setDirection(direction);
         }
       }
+    });
+
+    // Connect pause button
+    this.touchControls.onPauseInput(() => {
+      this.handlePausePress();
     });
   }
 
@@ -362,9 +357,11 @@ export class Game {
     if (currentState === GameStates.PLAYING) {
       this.audioSystem.playUISound();
       this.gameState.transition(GameStates.PAUSED);
+      this.touchControls.setPauseButtonIcon(true); // Show play icon
     } else if (currentState === GameStates.PAUSED) {
       this.audioSystem.playUISound();
       this.gameState.transition(GameStates.PLAYING);
+      this.touchControls.setPauseButtonIcon(false); // Show pause icon
     }
   }
 

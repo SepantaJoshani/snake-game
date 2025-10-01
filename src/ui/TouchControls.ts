@@ -9,6 +9,7 @@ export class TouchControls {
   private buttonSize = 60;
   private buttonGap = 10;
   private onDirectionCallback: ((direction: Direction) => void) | null = null;
+  private isInteracting = false;
 
   constructor() {
     this.container = new Container();
@@ -135,6 +136,9 @@ export class TouchControls {
   }
 
   private onButtonPress(button: Graphics, direction: Direction): void {
+    // Mark as interacting to prevent pause trigger
+    this.isInteracting = true;
+
     // Visual feedback - brighten button
     button.clear();
     button.roundRect(0, 0, this.buttonSize, this.buttonSize, 10);
@@ -159,6 +163,11 @@ export class TouchControls {
     if (text) {
       button.addChild(text);
     }
+
+    // Reset interaction flag after a short delay
+    setTimeout(() => {
+      this.isInteracting = false;
+    }, 100);
   }
 
   public onDirectionInput(callback: (direction: Direction) => void): void {
@@ -179,5 +188,9 @@ export class TouchControls {
     if (this.isMobileDevice()) {
       this.container.visible = visible;
     }
+  }
+
+  public getIsInteracting(): boolean {
+    return this.isInteracting;
   }
 }
