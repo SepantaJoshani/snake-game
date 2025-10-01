@@ -618,11 +618,11 @@ src/ui/HUD.js
 
 ### Task 12.2: Add Difficulty Indicator
 
-- [ ] Show current speed/level on HUD
-- [ ] Visual indicator of difficulty
-- [ ] Update on speed changes
+- [x] Show current speed/level on HUD
+- [x] Visual indicator of difficulty
+- [x] Update on speed changes
 
-**Completion Criteria**: Player can see difficulty level
+**Completion Criteria**: Player can see difficulty level ✅
 
 ---
 

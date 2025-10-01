@@ -238,10 +238,18 @@ export class Game {
   private update(deltaMS: number): void {
     const currentState = this.gameState.getCurrentState();
 
+    // Calculate level and speed progress
+    const level = Math.floor(this.foodCount / FOOD_SPEED_THRESHOLD) + 1;
+    const speedProgress =
+      (INITIAL_MOVE_INTERVAL - this.moveInterval) /
+      (INITIAL_MOVE_INTERVAL - MIN_MOVE_INTERVAL);
+
     // Update HUD
     this.hud.update(
       this.scoreSystem.getScore(),
-      this.scoreSystem.getHighScore()
+      this.scoreSystem.getHighScore(),
+      level,
+      speedProgress
     );
 
     // Update food animation (runs in all states)
