@@ -8,8 +8,10 @@ export class HUD {
   private levelText: Text;
   private speedIndicator: Graphics;
   private speedBarBg: Graphics;
+  private lastSpeedProgress: number;
 
   constructor() {
+    this.lastSpeedProgress = -1; // Initialize to invalid value to force first draw
     this.container = new Container();
 
     // Score text (top-left)
@@ -85,6 +87,13 @@ export class HUD {
   private updateSpeedBar(progress: number): void {
     // Clamp progress between 0 and 1
     progress = Math.max(0, Math.min(1, progress));
+
+    // Only redraw if progress actually changed (avoid redundant draws)
+    if (Math.abs(progress - this.lastSpeedProgress) < 0.001) {
+      return;
+    }
+
+    this.lastSpeedProgress = progress;
 
     // Clear and redraw speed bar
     this.speedIndicator.clear();

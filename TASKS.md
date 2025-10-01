@@ -642,24 +642,27 @@ src/ui/HUD.js
 
 ### Task 13.2: Optimize Rendering
 
-- [ ] Group all game objects in Containers
-- [ ] Use Graphics instead of Sprites
-- [ ] Minimize draw calls
-- [ ] Test FPS remains 60
+- [x] Group all game objects in Containers
+- [x] Use Graphics instead of Sprites
+- [x] Minimize draw calls
+- [x] Test FPS remains 60
 
-**Completion Criteria**: Game runs smoothly at 60 FPS
+**Completion Criteria**: Game runs smoothly at 60 FPS ✅
 
 ---
 
-### Task 13.3: Code Cleanup
+### Task 13.3: Code Cleanup & Performance Monitoring
 
-- [ ] Remove console.logs
-- [ ] Remove unused code
-- [ ] Add comments for complex logic
-- [ ] Ensure clean code principles followed
-- [ ] Run linter if available
+- [x] Remove console.logs
+- [x] Remove unused code
+- [x] Add comments for complex logic
+- [x] Ensure clean code principles followed
+- [x] Run linter if available
+- [x] Add comprehensive performance monitoring (pixi-stats)
+- [x] Add F key toggle for performance stats
+- [x] Update menu with new controls
 
-**Completion Criteria**: Code is clean and maintainable
+**Completion Criteria**: Code is clean and maintainable ✅
 
 ---
 

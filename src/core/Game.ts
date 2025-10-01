@@ -1,4 +1,5 @@
 import { Application, Ticker, Graphics, Container } from "pixi.js";
+import { Stats } from "pixi-stats";
 import { Grid } from "../entities/Grid";
 import { Snake } from "../entities/Snake";
 import { Food } from "../entities/Food";
@@ -42,6 +43,10 @@ export class Game {
   private pauseScreen: PauseScreen;
   private gameOverScreen: GameOverScreen;
 
+  // Performance monitoring
+  private stats: Stats;
+  private showStats: boolean;
+
   // Game loop variables
   private elapsed: number;
   private moveInterval: number;
@@ -79,6 +84,11 @@ export class Game {
     this.pauseScreen = new PauseScreen();
     this.gameOverScreen = new GameOverScreen();
 
+    // Initialize performance monitoring
+    this.showStats = import.meta.env.DEV; // Show in dev mode by default
+    this.stats = new Stats(this.app.renderer);
+    this.setupPerformanceMonitoring();
+
     // Game loop variables
     this.elapsed = 0;
     this.moveInterval = INITIAL_MOVE_INTERVAL;
@@ -105,6 +115,43 @@ export class Game {
     this.menuScreen.updateHighScore(this.scoreSystem.getHighScore());
   }
 
+  private setupPerformanceMonitoring(): void {
+    // Add stats to DOM - pixi-stats uses view property instead of dom
+    if (this.showStats) {
+      const statsElement =
+        (this.stats as any).view || (this.stats as any).domElement;
+      if (statsElement) {
+        document.body.appendChild(statsElement);
+        this.positionStatsElement(statsElement);
+      }
+    }
+  }
+
+  private positionStatsElement(element: HTMLElement): void {
+    // Position stats in top-left corner
+    element.style.position = "absolute";
+    element.style.top = "60px"; // Below score text
+    element.style.left = "20px";
+    element.style.zIndex = "9999";
+  }
+
+  public toggleStats(): void {
+    this.showStats = !this.showStats;
+
+    const statsElement =
+      (this.stats as any).view || (this.stats as any).domElement;
+    if (!statsElement) return;
+
+    if (this.showStats) {
+      document.body.appendChild(statsElement);
+      this.positionStatsElement(statsElement);
+    } else {
+      if (statsElement.parentNode) {
+        statsElement.parentNode.removeChild(statsElement);
+      }
+    }
+  }
+
   private setupScene(): void {
     // Add game elements to game container for shake effect
     this.gameContainer.addChild(this.grid.container);
@@ -112,12 +159,21 @@ export class Game {
     this.gameContainer.addChild(this.food.container);
     this.gameContainer.addChild(this.particlePool.getContainer());
 
+    // Mark game container as render group for better batching
+    this.gameContainer.isRenderGroup = true;
+
     // Add containers to stage
     this.app.stage.addChild(this.gameContainer);
     this.app.stage.addChild(this.hud.container);
     this.app.stage.addChild(this.menuScreen.container);
     this.app.stage.addChild(this.pauseScreen.container);
     this.app.stage.addChild(this.gameOverScreen.container);
+
+    // Mark UI containers as render groups for better batching
+    this.hud.container.isRenderGroup = true;
+    this.menuScreen.container.isRenderGroup = true;
+    this.pauseScreen.container.isRenderGroup = true;
+    this.gameOverScreen.container.isRenderGroup = true;
   }
 
   private setupScreenEffects(): void {
@@ -169,6 +225,9 @@ export class Game {
       } else if (event.key === "p" || event.key === "P") {
         event.preventDefault();
         this.handlePausePress();
+      } else if (event.key === "f" || event.key === "F") {
+        event.preventDefault();
+        this.toggleStats();
       }
     });
   }
@@ -237,6 +296,11 @@ export class Game {
 
   private update(deltaMS: number): void {
     const currentState = this.gameState.getCurrentState();
+
+    // Update performance stats
+    if (this.showStats) {
+      this.stats.update();
+    }
 
     // Calculate level and speed progress
     const level = Math.floor(this.foodCount / FOOD_SPEED_THRESHOLD) + 1;

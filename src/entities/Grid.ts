@@ -1,5 +1,5 @@
-import { Container, Graphics } from 'pixi.js';
-import { GRID_SIZE, CELL_SIZE, COLORS } from '../utils/Constants';
+import { Container, Graphics } from "pixi.js";
+import { GRID_SIZE, CELL_SIZE, COLORS } from "../utils/Constants";
 
 export class Grid {
   public container: Container;
@@ -15,22 +15,23 @@ export class Grid {
   private drawGrid(): void {
     this.gridGraphics.clear();
 
-    // Draw vertical lines
+    // Batch all lines into a single draw call for better performance
+    // Draw all vertical lines
     for (let x = 0; x <= GRID_SIZE; x++) {
       const xPos = x * CELL_SIZE;
-      this.gridGraphics
-        .moveTo(xPos, 0)
-        .lineTo(xPos, GRID_SIZE * CELL_SIZE)
-        .stroke({ width: 1, color: COLORS.gridLine, alpha: 0.3 });
+      this.gridGraphics.moveTo(xPos, 0).lineTo(xPos, GRID_SIZE * CELL_SIZE);
     }
 
-    // Draw horizontal lines
+    // Draw all horizontal lines
     for (let y = 0; y <= GRID_SIZE; y++) {
       const yPos = y * CELL_SIZE;
-      this.gridGraphics
-        .moveTo(0, yPos)
-        .lineTo(GRID_SIZE * CELL_SIZE, yPos)
-        .stroke({ width: 1, color: COLORS.gridLine, alpha: 0.3 });
+      this.gridGraphics.moveTo(0, yPos).lineTo(GRID_SIZE * CELL_SIZE, yPos);
     }
+
+    // Single stroke call for all lines
+    this.gridGraphics.stroke({ width: 1, color: COLORS.gridLine, alpha: 0.3 });
+
+    // Mark as static to enable caching (grid never changes)
+    this.gridGraphics.isRenderGroup = true;
   }
 }

@@ -1,5 +1,5 @@
-import { Container, Text, Graphics } from 'pixi.js';
-import { COLORS, CANVAS_WIDTH, CANVAS_HEIGHT } from '../utils/Constants';
+import { Container, Text, Graphics } from "pixi.js";
+import { COLORS, CANVAS_WIDTH, CANVAS_HEIGHT } from "../utils/Constants";
 
 export class MenuScreen {
   public container: Container;
@@ -19,12 +19,12 @@ export class MenuScreen {
 
     // Title
     this.titleText = new Text({
-      text: '🐍 SNAKE',
+      text: "🐍 SNAKE",
       style: {
-        fontFamily: 'Arial, sans-serif',
+        fontFamily: "Arial, sans-serif",
         fontSize: 72,
         fill: COLORS.snakeHead,
-        fontWeight: 'bold',
+        fontWeight: "bold",
       },
     });
     this.titleText.anchor.set(0.5);
@@ -33,12 +33,12 @@ export class MenuScreen {
 
     // Instructions
     this.instructionText = new Text({
-      text: 'Press SPACE to Start\n\nUse Arrow Keys or WASD to move',
+      text: "Press SPACE to Start\n\nUse Arrow Keys or WASD to move\nP to Pause • F to toggle Performance Stats",
       style: {
-        fontFamily: 'Arial, sans-serif',
+        fontFamily: "Arial, sans-serif",
         fontSize: 24,
         fill: COLORS.text,
-        align: 'center',
+        align: "center",
       },
     });
     this.instructionText.anchor.set(0.5);
@@ -47,9 +47,9 @@ export class MenuScreen {
 
     // High score
     this.highScoreText = new Text({
-      text: 'High Score: 0',
+      text: "High Score: 0",
       style: {
-        fontFamily: 'Arial, sans-serif',
+        fontFamily: "Arial, sans-serif",
         fontSize: 20,
         fill: COLORS.textDark,
       },
