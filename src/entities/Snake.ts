@@ -17,6 +17,7 @@ export class Snake {
   public direction: Direction;
   private segmentGraphics: Graphics[];
   private shouldGrow: boolean;
+  private previousSegments: Position[];
 
   constructor(startX: number = 10, startY: number = 10) {
     this.container = new Container();
@@ -29,10 +30,16 @@ export class Snake {
     this.segmentGraphics = [];
     this.shouldGrow = false;
 
+    // Store previous positions for interpolation
+    this.previousSegments = this.segments.map((seg) => ({ ...seg }));
+
     this.render();
   }
 
   public move(): void {
+    // Store previous positions for interpolation
+    this.previousSegments = this.segments.map((seg) => ({ ...seg }));
+
     // Calculate new head position
     const head = this.segments[0];
     const newHead: Position = {
@@ -70,6 +77,77 @@ export class Snake {
 
   public getHead(): Position {
     return this.segments[0];
+  }
+
+  public interpolate(progress: number): void {
+    // Clamp progress between 0 and 1
+    progress = Math.max(0, Math.min(1, progress));
+
+    // Render with interpolated positions
+    this.renderInterpolated(progress);
+  }
+
+  private lerp(start: number, end: number, progress: number): number {
+    return start + (end - start) * progress;
+  }
+
+  private renderInterpolated(progress: number): void {
+    // Clear existing graphics
+    this.segmentGraphics.forEach((graphic) => graphic.destroy());
+    this.segmentGraphics = [];
+    this.container.removeChildren();
+
+    const totalSegments = this.segments.length;
+
+    // Render each segment with interpolated positions
+    this.segments.forEach((segment, index) => {
+      const graphic = new Graphics();
+      const isHead = index === 0;
+
+      // Calculate gradient color based on position (darker towards tail)
+      const gradientFactor = index / Math.max(totalSegments - 1, 1);
+      const color = this.interpolateColor(
+        COLORS.snakeHead,
+        COLORS.snakeBody,
+        gradientFactor
+      );
+
+      // Get interpolated position
+      const prevSegment = this.previousSegments[index] || segment;
+      const interpolatedX = this.lerp(prevSegment.x, segment.x, progress);
+      const interpolatedY = this.lerp(prevSegment.y, segment.y, progress);
+
+      const padding = 2;
+      const x = interpolatedX * CELL_SIZE + padding;
+      const y = interpolatedY * CELL_SIZE + padding;
+      const size = CELL_SIZE - padding * 2;
+      const radius = isHead ? 14 : 12; // More rounded corners
+
+      // Draw subtle shadow/outline
+      graphic.roundRect(x + 1, y + 1, size, size, radius);
+      graphic.fill({ color: 0x000000, alpha: 0.3 });
+
+      // Draw main segment with gradient color
+      graphic.roundRect(x, y, size, size, radius);
+      graphic.fill(color);
+
+      // Add outline for depth
+      graphic.roundRect(x, y, size, size, radius);
+      graphic.stroke({ width: 1, color: 0xffffff, alpha: 0.2 });
+
+      // Enhanced head visuals
+      if (isHead) {
+        // Brighter outline for head
+        graphic.roundRect(x, y, size, size, radius);
+        graphic.stroke({ width: 2, color: 0xffffff, alpha: 0.4 });
+
+        // Add eyes based on direction
+        this.drawEyes(graphic, x, y, size);
+      }
+
+      this.segmentGraphics.push(graphic);
+      this.container.addChild(graphic);
+    });
   }
 
   private render(): void {

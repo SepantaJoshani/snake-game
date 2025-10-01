@@ -210,6 +210,10 @@ export class Game {
       this.elapsed -= this.moveInterval;
       this.updateGameLogic();
     }
+
+    // Interpolate snake position for smooth movement
+    const progress = Math.min(this.elapsed / this.moveInterval, 1);
+    this.snake.interpolate(progress);
   }
 
   private updateGameLogic(): void {
