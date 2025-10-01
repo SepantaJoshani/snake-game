@@ -1,4 +1,4 @@
-import { Application, Ticker } from "pixi.js";
+import { Application, Ticker, Graphics, Container } from "pixi.js";
 import { Grid } from "../entities/Grid";
 import { Snake } from "../entities/Snake";
 import { Food } from "../entities/Food";
@@ -17,6 +17,8 @@ import {
   MIN_MOVE_INTERVAL,
   FOOD_SPEED_THRESHOLD,
   CELL_SIZE,
+  CANVAS_WIDTH,
+  CANVAS_HEIGHT,
 } from "../utils/Constants";
 
 export class Game {
@@ -45,6 +47,17 @@ export class Game {
   private moveInterval: number;
   private foodCount: number;
 
+  // Screen effects
+  private gameContainer: Container;
+  private flashOverlay: Graphics;
+  private fadeOverlay: Graphics;
+  private screenShake: {
+    active: boolean;
+    duration: number;
+    intensity: number;
+    elapsed: number;
+  };
+
   constructor(app: Application) {
     this.app = app;
     this.gameState = new GameState(GameStates.MENU);
@@ -71,7 +84,19 @@ export class Game {
     this.moveInterval = INITIAL_MOVE_INTERVAL;
     this.foodCount = 0;
 
+    // Initialize screen effects
+    this.gameContainer = new Container();
+    this.flashOverlay = new Graphics();
+    this.fadeOverlay = new Graphics();
+    this.screenShake = {
+      active: false,
+      duration: 0,
+      intensity: 0,
+      elapsed: 0,
+    };
+
     this.setupScene();
+    this.setupScreenEffects();
     this.setupGameStateListeners();
     this.setupInputHandlers();
     this.startGameLoop();
@@ -81,14 +106,30 @@ export class Game {
   }
 
   private setupScene(): void {
-    this.app.stage.addChild(this.grid.container);
-    this.app.stage.addChild(this.snake.container);
-    this.app.stage.addChild(this.food.container);
-    this.app.stage.addChild(this.particlePool.getContainer());
+    // Add game elements to game container for shake effect
+    this.gameContainer.addChild(this.grid.container);
+    this.gameContainer.addChild(this.snake.container);
+    this.gameContainer.addChild(this.food.container);
+    this.gameContainer.addChild(this.particlePool.getContainer());
+
+    // Add containers to stage
+    this.app.stage.addChild(this.gameContainer);
     this.app.stage.addChild(this.hud.container);
     this.app.stage.addChild(this.menuScreen.container);
     this.app.stage.addChild(this.pauseScreen.container);
     this.app.stage.addChild(this.gameOverScreen.container);
+  }
+
+  private setupScreenEffects(): void {
+    // Setup flash overlay (white flash)
+    this.flashOverlay.rect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    this.flashOverlay.fill({ color: 0xffffff, alpha: 0 });
+    this.app.stage.addChild(this.flashOverlay);
+
+    // Setup fade overlay (black fade)
+    this.fadeOverlay.rect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    this.fadeOverlay.fill({ color: 0x000000, alpha: 0 });
+    this.app.stage.addChild(this.fadeOverlay);
   }
 
   private setupGameStateListeners(): void {
@@ -96,12 +137,14 @@ export class Game {
       this.menuScreen.show();
       this.pauseScreen.hide();
       this.gameOverScreen.hide();
+      this.fadeIn(500);
     });
 
     this.gameState.onStateChange(GameStates.PLAYING, () => {
       this.menuScreen.hide();
       this.pauseScreen.hide();
       this.gameOverScreen.hide();
+      this.fadeIn(300);
     });
 
     this.gameState.onStateChange(GameStates.PAUSED, () => {
@@ -109,6 +152,7 @@ export class Game {
     });
 
     this.gameState.onStateChange(GameStates.GAME_OVER, () => {
+      this.triggerFlash();
       this.gameOverScreen.show(
         this.scoreSystem.getScore(),
         this.scoreSystem.getHighScore()
@@ -206,6 +250,9 @@ export class Game {
     // Update particle system (runs in all states)
     this.particlePool.update(deltaMS);
 
+    // Update screen effects (runs in all states)
+    this.updateScreenEffects(deltaMS);
+
     // Only update game logic when playing
     if (currentState !== GameStates.PLAYING) {
       return;
@@ -237,12 +284,14 @@ export class Game {
 
     // Wall collision
     if (this.collisionSystem.checkWallCollision(head)) {
+      this.triggerScreenShake(200, 8);
       this.gameState.transition(GameStates.GAME_OVER);
       return;
     }
 
     // Self collision
     if (this.collisionSystem.checkSelfCollision(this.snake)) {
+      this.triggerScreenShake(200, 8);
       this.gameState.transition(GameStates.GAME_OVER);
       return;
     }
@@ -266,6 +315,61 @@ export class Game {
       // Spawn new food
       const occupied = this.collisionSystem.getOccupiedPositions(this.snake);
       this.food.spawn(occupied);
+    }
+  }
+
+  private triggerScreenShake(duration: number, intensity: number): void {
+    this.screenShake.active = true;
+    this.screenShake.duration = duration;
+    this.screenShake.intensity = intensity;
+    this.screenShake.elapsed = 0;
+  }
+
+  private triggerFlash(): void {
+    this.flashOverlay.alpha = 0.6;
+  }
+
+  private fadeIn(duration: number): void {
+    this.fadeOverlay.alpha = 1;
+
+    // Gradually fade in
+    const fadeStep = 1 / (duration / 16); // Assuming 60fps
+    const fadeInterval = setInterval(() => {
+      this.fadeOverlay.alpha -= fadeStep;
+      if (this.fadeOverlay.alpha <= 0) {
+        this.fadeOverlay.alpha = 0;
+        clearInterval(fadeInterval);
+      }
+    }, 16);
+  }
+
+  private updateScreenEffects(deltaMS: number): void {
+    // Update screen shake
+    if (this.screenShake.active) {
+      this.screenShake.elapsed += deltaMS;
+
+      if (this.screenShake.elapsed >= this.screenShake.duration) {
+        // End shake - reset position
+        this.screenShake.active = false;
+        this.gameContainer.position.set(0, 0);
+      } else {
+        // Apply shake - random offset
+        const progress = this.screenShake.elapsed / this.screenShake.duration;
+        const currentIntensity = this.screenShake.intensity * (1 - progress); // Decrease over time
+
+        const offsetX = (Math.random() - 0.5) * currentIntensity * 2;
+        const offsetY = (Math.random() - 0.5) * currentIntensity * 2;
+
+        this.gameContainer.position.set(offsetX, offsetY);
+      }
+    }
+
+    // Update flash effect (fade out)
+    if (this.flashOverlay.alpha > 0) {
+      this.flashOverlay.alpha -= deltaMS * 0.003; // Fade out speed
+      if (this.flashOverlay.alpha < 0) {
+        this.flashOverlay.alpha = 0;
+      }
     }
   }
 }

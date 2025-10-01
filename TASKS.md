@@ -515,12 +515,12 @@ src/utils/ParticlePool.js
 
 ### Task 10.5: Add Screen Effects
 
-- [ ] Implement screen shake on collision
-- [ ] Add flash effect on game over
-- [ ] Add smooth fade transitions between states
-- [ ] Test all effects work
+- [x] Implement screen shake on collision
+- [x] Add flash effect on game over
+- [x] Add smooth fade transitions between states
+- [x] Test all effects work
 
-**Completion Criteria**: Visual feedback for game events
+**Completion Criteria**: Visual feedback for game events ✅
 
 ---
 
@@ -703,6 +703,7 @@ src/systems/AudioSystem.js
 - [ ] Map swipes to directions
 - [ ] Test on mobile device
 - [ ] Add visual feedback
+- [ ] Check responsive design
 
 **Completion Criteria**: Game playable on mobile
 
