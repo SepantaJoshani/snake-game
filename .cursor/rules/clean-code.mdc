@@ -1,0 +1,299 @@
+---
+alwaysApply: true
+description: Core clean code principles based on Robert C. Martin's guidelines
+---
+
+# Clean Code Guidelines
+
+Comprehensive standards for writing maintainable, readable, and efficient code based on Robert C. Martin's "Clean Code" principles.
+
+## Variables
+
+### Naming Conventions
+
+- Use **meaningful and pronounceable names** that clearly convey purpose
+- Use **searchable names** for constants and important variables
+- Use **explanatory variables** instead of magic numbers or complex expressions
+- Avoid **mental mapping** - code should be self-explanatory
+- Use **consistent capitalization**:
+  - `camelCase` for variables and functions
+  - `PascalCase` for classes and types
+  - `UPPER_SNAKE_CASE` for constants
+
+```javascript
+// ❌ Bad
+const d = new Date();
+const u = users.filter((u) => u.age > 18);
+
+// ✅ Good
+const currentDate = new Date();
+const eligibleUsers = users.filter((user) => user.age > MINIMUM_AGE);
+```
+
+## Functions
+
+### Core Principles
+
+- **Functions should do one thing** and do it well (Single Responsibility)
+- **Keep function arguments to 2 or fewer** - use objects for multiple parameters
+- Use **descriptive names** that clearly indicate what the function does
+- **Avoid flags as function parameters** - prefer separate functions instead
+- **Keep function callers and callees close** in the codebase
+- **Remove duplicate code** through abstraction
+- **Avoid side effects** whenever possible
+- **Favor functional programming** approaches and pure functions
+
+```javascript
+// ❌ Bad
+function processUser(name, age, email, isActive) {
+  // Too many parameters
+}
+
+function saveData(data, format) {
+  if (format === "json") {
+    // Save as JSON
+  } else if (format === "xml") {
+    // Save as XML
+  }
+}
+
+// ✅ Good
+function processUser({ name, age, email, isActive }) {
+  // Object parameter for multiple values
+}
+
+function saveAsJson(data) {
+  // Single responsibility
+}
+
+function saveAsXml(data) {
+  // Single responsibility
+}
+```
+
+## Conditionals
+
+### Best Practices
+
+- **Encapsulate conditionals** in named functions for clarity
+- **Avoid deeply nested ternary operators** - use clear if/else or switch statements
+- **Use early returns** to reduce nesting
+
+```javascript
+// ❌ Bad
+const result = data
+  ? data.status === "active"
+    ? "green"
+    : data.status === "pending"
+    ? "yellow"
+    : "red"
+  : "gray";
+
+// ✅ Good
+function getStatusColor(data) {
+  if (!data) return "gray";
+  if (data.status === "active") return "green";
+  if (data.status === "pending") return "yellow";
+  return "red";
+}
+```
+
+## Objects and Data Structures
+
+### Best Practices
+
+- **Use getters and setters** for controlled access to object properties
+- **Use private members** for proper encapsulation
+- **Prefer composition over inheritance**
+- **Use method chaining** for fluent interfaces
+
+```javascript
+// ✅ Good - Using getters/setters and private members
+function createUser(name) {
+  let _name = name;
+  let _isActive = false;
+
+  return {
+    get name() {
+      return _name;
+    },
+
+    set name(value) {
+      if (typeof value === "string" && value.length > 0) {
+        _name = value;
+      }
+    },
+
+    activate() {
+      _isActive = true;
+      return this; // Method chaining
+    },
+  };
+}
+```
+
+## Classes
+
+### Modern JavaScript Classes
+
+- **Prefer ES6 classes** over ES5 constructor functions
+- **Use method chaining** where appropriate for fluent APIs
+- **Prefer composition over inheritance**
+- Follow **Single Responsibility Principle**
+- Keep classes **small and focused**
+
+```javascript
+// ✅ Good
+class UserValidator {
+  validate(user) {
+    return this.validateName(user.name)
+      .validateEmail(user.email)
+      .validateAge(user.age);
+  }
+
+  validateName(name) {
+    // Validation logic
+    return this;
+  }
+
+  validateEmail(email) {
+    // Validation logic
+    return this;
+  }
+
+  validateAge(age) {
+    // Validation logic
+    return this;
+  }
+}
+```
+
+## SOLID Principles
+
+### Single Responsibility Principle (SRP)
+
+- Each class/function should have **only one reason to change**
+- **Separate concerns** into different modules
+- One responsibility per unit of code
+
+### Open/Closed Principle (OCP)
+
+- **Open for extension, closed for modification**
+- Use interfaces and composition to extend behavior
+- Design for future changes without modifying existing code
+
+### Liskov Substitution Principle (LSP)
+
+- Subtypes must be **substitutable for their base types**
+- Derived classes should extend, not replace base behavior
+
+### Interface Segregation Principle (ISP)
+
+- **Don't force clients to depend on interfaces they don't use**
+- Create specific, focused interfaces
+
+### Dependency Inversion Principle (DIP)
+
+- **Depend on abstractions, not concretions**
+- Use dependency injection where appropriate
+- High-level modules should not depend on low-level modules
+
+## Error Handling
+
+### Best Practices
+
+- **Never ignore caught errors** or rejected promises
+- **Use proper error reporting** and logging
+- **Handle errors gracefully** with meaningful messages
+- **Fail fast** when appropriate
+- **Provide context** in error messages
+
+```javascript
+// ❌ Bad
+try {
+  riskyOperation();
+} catch (error) {
+  // Silent failure
+}
+
+// ✅ Good
+try {
+  riskyOperation();
+} catch (error) {
+  logger.error("Failed to perform risky operation:", error);
+  notifyUser("Operation failed. Please try again.");
+  throw error; // Re-throw if needed for upstream handling
+}
+```
+
+## Comments
+
+### When and How to Comment
+
+- **Comment only complex business logic** that isn't immediately obvious
+- **Avoid leaving commented-out code** in the repository (use version control)
+- **Avoid positional markers** and decorative comments
+- **Explain WHY, not WHAT** - the code should explain what it does
+- **Keep comments up to date** or remove them
+
+```javascript
+// ❌ Bad
+// Increment i
+i++;
+
+// =====================================
+// User Section
+// =====================================
+
+// ✅ Good
+// Apply business rule: Premium users get 20% discount after 6 months
+const discount = user.isPremium && user.membershipMonths > 6 ? 0.2 : 0;
+```
+
+## Formatting
+
+### Consistency Rules
+
+- Use **consistent indentation** (prefer 2 spaces)
+- Keep **line length reasonable** (80-120 characters max)
+- Use **consistent bracket placement**
+- **Group related functionality** together
+- **Separate concerns** with whitespace
+- **Order methods** logically (public before private, high-level before low-level)
+
+## Concurrency
+
+### Asynchronous Best Practices
+
+- **Handle async operations properly** with error handling
+- **Avoid callback hell** - use Promises or async/await
+- **Handle race conditions** appropriately
+- **Always catch promise rejections**
+
+```javascript
+// ✅ Good
+async function fetchUserData(userId) {
+  try {
+    const user = await userService.getUser(userId);
+    const permissions = await permissionService.getPermissions(userId);
+
+    return {
+      ...user,
+      permissions,
+    };
+  } catch (error) {
+    logger.error(`Failed to fetch user data for ${userId}:`, error);
+    throw new UserDataError("Unable to retrieve user information");
+  }
+}
+```
+
+## General Principles
+
+### Code Quality
+
+- **DRY (Don't Repeat Yourself)** - Extract common logic
+- **KISS (Keep It Simple, Stupid)** - Simplicity over cleverness
+- **YAGNI (You Aren't Gonna Need It)** - Don't add unnecessary features
+- **Write code for humans first** - optimize for readability
+- **Refactor regularly** - keep code clean as requirements evolve
