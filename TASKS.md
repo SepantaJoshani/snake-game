@@ -670,13 +670,13 @@ src/ui/HUD.js
 
 ### Task 14.1: Add Sound Effects
 
-- [ ] Find/create sound files (eat, collision)
-- [ ] Create AudioSystem class
-- [ ] Play sound on food eaten
-- [ ] Play sound on collision
-- [ ] Add mute toggle
+- [x] Find/create sound files (eat, collision)
+- [x] Create AudioSystem class
+- [x] Play sound on food eaten
+- [x] Play sound on collision
+- [x] Add mute toggle
 
-**Completion Criteria**: Sound effects play on events
+**Completion Criteria**: Sound effects play on events ✅
 
 **Files to create:**
 
@@ -688,13 +688,13 @@ src/systems/AudioSystem.js
 
 ### Task 14.2: Add Background Music
 
-- [ ] Find/create background music
-- [ ] Loop background music
-- [ ] Lower volume appropriately
-- [ ] Stop on game over
-- [ ] Resume on restart
+- [x] Find/create background music
+- [x] Loop background music
+- [x] Lower volume appropriately
+- [x] Stop on game over
+- [x] Resume on restart
 
-**Completion Criteria**: Background music enhances experience
+**Completion Criteria**: Background music enhances experience ✅
 
 ---
 
@@ -767,23 +767,6 @@ src/systems/AudioSystem.js
 - [ ] Test production build
 - [ ] Optimize asset loading
 - [ ] Check bundle size
-
-**Completion Criteria**: Production build works perfectly
-
----
-
-## 🚀 Deployment (Optional)
-
-### Task 17.1: Deploy to GitHub Pages
-
-- [ ] Create GitHub repository
-- [ ] Push code
-- [ ] Configure GitHub Pages
-- [ ] Test deployed version
-
-**Completion Criteria**: Game is live and playable online
-
----
 
 ## 📝 Notes
 

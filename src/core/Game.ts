@@ -6,6 +6,7 @@ import { Food } from "../entities/Food";
 import { InputSystem } from "../systems/InputSystem";
 import { CollisionSystem } from "../systems/CollisionSystem";
 import { ScoreSystem } from "../systems/ScoreSystem";
+import { AudioSystem } from "../systems/AudioSystem";
 import { HUD } from "../ui/HUD";
 import { MenuScreen } from "../ui/MenuScreen";
 import { PauseScreen } from "../ui/PauseScreen";
@@ -35,6 +36,7 @@ export class Game {
   private inputSystem: InputSystem;
   private collisionSystem: CollisionSystem;
   private scoreSystem: ScoreSystem;
+  private audioSystem: AudioSystem;
   private particlePool: ParticlePool;
 
   // UI
@@ -76,6 +78,7 @@ export class Game {
     this.inputSystem = new InputSystem();
     this.collisionSystem = new CollisionSystem();
     this.scoreSystem = new ScoreSystem();
+    this.audioSystem = new AudioSystem();
     this.particlePool = new ParticlePool();
 
     // Initialize UI
@@ -194,6 +197,9 @@ export class Game {
       this.pauseScreen.hide();
       this.gameOverScreen.hide();
       this.fadeIn(500);
+
+      // Stop background music on menu
+      this.audioSystem.stopBackgroundMusic();
     });
 
     this.gameState.onStateChange(GameStates.PLAYING, () => {
@@ -201,10 +207,16 @@ export class Game {
       this.pauseScreen.hide();
       this.gameOverScreen.hide();
       this.fadeIn(300);
+
+      // Start background music when playing
+      if (!this.audioSystem.isMusicPlaying()) {
+        this.audioSystem.startBackgroundMusic();
+      }
     });
 
     this.gameState.onStateChange(GameStates.PAUSED, () => {
       this.pauseScreen.show();
+      // Music continues playing during pause
     });
 
     this.gameState.onStateChange(GameStates.GAME_OVER, () => {
@@ -214,6 +226,9 @@ export class Game {
         this.scoreSystem.getHighScore()
       );
       this.menuScreen.updateHighScore(this.scoreSystem.getHighScore());
+
+      // Stop background music on game over
+      this.audioSystem.stopBackgroundMusic();
     });
   }
 
@@ -228,18 +243,32 @@ export class Game {
       } else if (event.key === "f" || event.key === "F") {
         event.preventDefault();
         this.toggleStats();
+      } else if (event.key === "m" || event.key === "M") {
+        event.preventDefault();
+        this.toggleMute();
       }
     });
   }
 
+  private toggleMute(): void {
+    this.audioSystem.toggleMute();
+    this.audioSystem.playUISound(); // Give audio feedback for toggle
+  }
+
   private handleSpacePress(): void {
+    // Resume audio context on user interaction (required by browsers)
+    this.audioSystem.resumeAudioContext();
+
     const currentState = this.gameState.getCurrentState();
 
     if (currentState === GameStates.MENU) {
+      this.audioSystem.playUISound();
       this.startNewGame();
     } else if (currentState === GameStates.PAUSED) {
+      this.audioSystem.playUISound();
       this.gameState.transition(GameStates.PLAYING);
     } else if (currentState === GameStates.GAME_OVER) {
+      this.audioSystem.playUISound();
       this.startNewGame();
     }
   }
@@ -248,8 +277,10 @@ export class Game {
     const currentState = this.gameState.getCurrentState();
 
     if (currentState === GameStates.PLAYING) {
+      this.audioSystem.playUISound();
       this.gameState.transition(GameStates.PAUSED);
     } else if (currentState === GameStates.PAUSED) {
+      this.audioSystem.playUISound();
       this.gameState.transition(GameStates.PLAYING);
     }
   }
@@ -356,6 +387,7 @@ export class Game {
 
     // Wall collision
     if (this.collisionSystem.checkWallCollision(head)) {
+      this.audioSystem.playCollisionSound();
       this.triggerScreenShake(200, 8);
       this.gameState.transition(GameStates.GAME_OVER);
       return;
@@ -363,6 +395,7 @@ export class Game {
 
     // Self collision
     if (this.collisionSystem.checkSelfCollision(this.snake)) {
+      this.audioSystem.playCollisionSound();
       this.triggerScreenShake(200, 8);
       this.gameState.transition(GameStates.GAME_OVER);
       return;
@@ -370,6 +403,7 @@ export class Game {
 
     // Food collision
     if (this.collisionSystem.checkFoodCollision(this.snake, this.food)) {
+      this.audioSystem.playEatSound();
       this.snake.grow();
       this.scoreSystem.addPoints();
       this.foodCount++;

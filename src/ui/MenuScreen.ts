@@ -33,7 +33,7 @@ export class MenuScreen {
 
     // Instructions
     this.instructionText = new Text({
-      text: "Press SPACE to Start\n\nUse Arrow Keys or WASD to move\nP to Pause • F to toggle Performance Stats",
+      text: "Press SPACE to Start\n\nUse Arrow Keys or WASD to move\nP to Pause • F for Performance Stats • M to Mute",
       style: {
         fontFamily: "Arial, sans-serif",
         fontSize: 24,
