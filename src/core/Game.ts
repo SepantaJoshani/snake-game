@@ -10,11 +10,13 @@ import { MenuScreen } from "../ui/MenuScreen";
 import { PauseScreen } from "../ui/PauseScreen";
 import { GameOverScreen } from "../ui/GameOverScreen";
 import { GameState } from "./GameState";
+import { ParticlePool } from "../utils/ParticlePool";
 import {
   GameStates,
   INITIAL_MOVE_INTERVAL,
   MIN_MOVE_INTERVAL,
   FOOD_SPEED_THRESHOLD,
+  CELL_SIZE,
 } from "../utils/Constants";
 
 export class Game {
@@ -30,6 +32,7 @@ export class Game {
   private inputSystem: InputSystem;
   private collisionSystem: CollisionSystem;
   private scoreSystem: ScoreSystem;
+  private particlePool: ParticlePool;
 
   // UI
   private hud: HUD;
@@ -55,6 +58,7 @@ export class Game {
     this.inputSystem = new InputSystem();
     this.collisionSystem = new CollisionSystem();
     this.scoreSystem = new ScoreSystem();
+    this.particlePool = new ParticlePool();
 
     // Initialize UI
     this.hud = new HUD();
@@ -80,6 +84,7 @@ export class Game {
     this.app.stage.addChild(this.grid.container);
     this.app.stage.addChild(this.snake.container);
     this.app.stage.addChild(this.food.container);
+    this.app.stage.addChild(this.particlePool.getContainer());
     this.app.stage.addChild(this.hud.container);
     this.app.stage.addChild(this.menuScreen.container);
     this.app.stage.addChild(this.pauseScreen.container);
@@ -198,6 +203,9 @@ export class Game {
     // Update food animation (runs in all states)
     this.food.update(deltaMS);
 
+    // Update particle system (runs in all states)
+    this.particlePool.update(deltaMS);
+
     // Only update game logic when playing
     if (currentState !== GameStates.PLAYING) {
       return;
@@ -244,6 +252,11 @@ export class Game {
       this.snake.grow();
       this.scoreSystem.addPoints();
       this.foodCount++;
+
+      // Create particle burst at food position
+      const foodX = this.food.position.x * CELL_SIZE + CELL_SIZE / 2;
+      const foodY = this.food.position.y * CELL_SIZE + CELL_SIZE / 2;
+      this.particlePool.burst(foodX, foodY, 0xff6b6b, 12);
 
       // Increase difficulty
       if (this.foodCount % FOOD_SPEED_THRESHOLD === 0) {

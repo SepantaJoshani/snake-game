@@ -496,14 +496,14 @@ src/core/GameState.js
 
 ### Task 10.4: Add Particle Effects
 
-- [ ] Create `src/utils/ParticlePool.js`
-- [ ] Create particle Graphics objects
-- [ ] On food eaten, burst 10-15 particles
-- [ ] Give particles velocity and gravity
-- [ ] Fade out over time
-- [ ] Pool particles for reuse
+- [x] Create `src/utils/ParticlePool.js`
+- [x] Create particle Graphics objects
+- [x] On food eaten, burst 10-15 particles
+- [x] Give particles velocity and gravity
+- [x] Fade out over time
+- [x] Pool particles for reuse
 
-**Completion Criteria**: Eating food creates particle burst
+**Completion Criteria**: Eating food creates particle burst ✅
 
 **Files to create:**
 
