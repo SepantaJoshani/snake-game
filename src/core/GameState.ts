@@ -1,6 +1,6 @@
-import { GameStates } from '../utils/Constants';
+import { GameStates } from "../utils/Constants";
 
-export type GameStateType = typeof GameStates[keyof typeof GameStates];
+export type GameStateType = (typeof GameStates)[keyof typeof GameStates];
 
 export class GameState {
   private currentState: GameStateType;
@@ -39,7 +39,7 @@ export class GameState {
     }
   }
 
-  private onExit(state: GameStateType): void {
+  private onExit(_state: GameStateType): void {
     // Can add exit callbacks if needed
   }
 }

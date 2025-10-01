@@ -15,10 +15,8 @@ interface Particle {
 export class ParticlePool {
   private particles: Particle[];
   private container: Container;
-  private readonly poolSize: number;
 
   constructor(poolSize: number = 50) {
-    this.poolSize = poolSize;
     this.particles = [];
     this.container = new Container();
 
