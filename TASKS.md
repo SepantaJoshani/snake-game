@@ -459,13 +459,13 @@ src/core/GameState.js
 
 ### Task 10.1: Improve Snake Visual
 
-- [ ] Add gradient to snake body
-- [ ] Make head distinct (different color/shape)
-- [ ] Add subtle shadow/outline
-- [ ] Make corners more rounded
-- [ ] Add visual "eyes" to head (optional)
+- [x] Add gradient to snake body
+- [x] Make head distinct (different color/shape)
+- [x] Add subtle shadow/outline
+- [x] Make corners more rounded
+- [x] Add visual "eyes" to head (optional)
 
-**Completion Criteria**: Snake looks modern and polished
+**Completion Criteria**: Snake looks modern and polished ✅
 
 ---
 
